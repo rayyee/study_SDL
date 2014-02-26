@@ -1,3 +1,6 @@
+//UVi Soft (2008)
+//Long Fei (lf426), E-mail: zbln426@163.com
+
 //FileName: SurfaceClass.h
 
 #ifndef SURFACE_CLASS_H
@@ -6,8 +9,7 @@
 #include <iostream>
 #include <string>
 #include "SDL/SDL.h"
-
-using std::string;
+#include "SDL/SDL_image.h"
 
 class ScreenSurface
 {
@@ -23,30 +25,45 @@ public:
     ScreenSurface(int w, int h, int b = 0, Uint32 f = 0);
     ~ScreenSurface();
     SDL_Surface* point() const;
-    bool flip() const;
+    void flip() const;
+    void fillColor(Uint8 r = 0, Uint8 g = 0, Uint8 b = 0) const;
 };
 
 class DisplaySurface
 {
 private:
-    string fileName;
+    std::string fileName;
     SDL_Surface* pSurface;
     SDL_Surface* pScreen;
 public:
-    DisplaySurface(string file_name, const ScreenSurface& screen);
+    DisplaySurface(const std::string& file_name, const ScreenSurface& screen);
     ~DisplaySurface();
     SDL_Surface* point() const;
-    bool blit() const;
-    bool blit(int at_x, int at_y) const;
-    bool blit(int at_x, int at_y,
+    void blit() const;
+    void blit(int at_x, int at_y) const;
+    void blit(int at_x, int at_y,
                 int from_x, int from_y, int w, int h,
-                int delta_x = 2, int delta_y = 2) const;
-    bool blitToSurface(const DisplaySurface& dst_surface,
-                        int at_x = 0, int at_y = 0) const;
-    bool blitToSurface(const DisplaySurface& dst_surface,
-                        int at_x, int at_y,
-                        int from_x, int from_y, int w, int h,
-                        int delta_x = 2, int delta_y = 2) const;
+                int delta_x = 0, int delta_y = 0) const;
+    void colorKey(Uint8 r = 0, Uint8 g = 0xFF, Uint8 b = 0xFF, Uint32 flag = SDL_SRCCOLORKEY);
+};
+
+class ErrorInfo
+{
+private:
+    std::string info;
+public:
+    ErrorInfo():info("Unknown ERROR!")
+    {}
+    ErrorInfo(const char* c_str)
+    {
+        info = std::string(c_str);
+    }
+    ErrorInfo(const std::string& str):info(str)
+    {}
+    void show() const
+    {
+        std::cerr << info << std::endl;
+    }
 };
 
 #endif

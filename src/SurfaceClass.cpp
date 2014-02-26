@@ -1,3 +1,6 @@
+//UVi Soft (2008)
+//Long Fei (lf426), E-mail: zbln426@163.com
+
 #include "include/SurfaceClass.h"
 
 //VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
@@ -9,9 +12,9 @@ ScreenSurface::ScreenSurface():
 width(640), height(480), bpp(32), flags(0)
 {
     if ( screenNum > 0 )
-        throw "DONOT create more than ONE screen!";
-    if ( SDL_Init(SDL_INIT_VIDEO ) < 0  )
-        throw SDL_GetError();
+        throw ErrorInfo("DONOT create more than ONE screen!");
+    if ( SDL_Init(SDL_INIT_VIDEO < 0 ) )
+        throw ErrorInfo(SDL_GetError());
     pScreen = SDL_SetVideoMode(width, height, bpp, flags);
     screenNum++;
 }
@@ -20,9 +23,9 @@ ScreenSurface::ScreenSurface(int w, int h, int b, Uint32 f):
 width(w), height(h), bpp(b), flags(f)
 {
     if ( screenNum > 0 )
-        throw "DONOT create more than ONE screen!";
+        throw ErrorInfo("DONOT create more than ONE screen!");
     if ( SDL_Init(SDL_INIT_VIDEO < 0 ) )
-        throw SDL_GetError();
+        throw ErrorInfo(SDL_GetError());
     pScreen = SDL_SetVideoMode(width, height, bpp, flags);
     screenNum++;
 }
@@ -37,11 +40,17 @@ SDL_Surface* ScreenSurface::point() const
     return pScreen;
 }
 
-bool ScreenSurface::flip() const
+void ScreenSurface::flip() const
 {
     if ( SDL_Flip(pScreen) < 0 )
-        return false;
-    else return true;
+        throw ErrorInfo(SDL_GetError());
+}
+
+
+void ScreenSurface::fillColor(Uint8 r, Uint8 g, Uint8 b) const
+{
+     if ( SDL_FillRect(pScreen, 0, SDL_MapRGB(pScreen->format, r, g, b)) < 0 )
+         throw ErrorInfo(SDL_GetError());
 }
 
 //AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
@@ -49,12 +58,16 @@ bool ScreenSurface::flip() const
 //VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
 //class DisplaySurface
 
-DisplaySurface::DisplaySurface(std::string file_name, const ScreenSurface& screen):
+DisplaySurface::DisplaySurface(const std::string& file_name, const ScreenSurface& screen):
 fileName(file_name)
 {
-    pSurface = SDL_LoadBMP(file_name.c_str());
+    SDL_Surface* pSurfaceTemp = IMG_Load(file_name.c_str());
+    if ( pSurfaceTemp == 0 )
+        throw ErrorInfo(SDL_GetError());
+    pSurface = SDL_DisplayFormat(pSurfaceTemp);
     if ( pSurface == 0 )
-        throw SDL_GetError();
+        throw ErrorInfo(SDL_GetError());
+    SDL_FreeSurface(pSurfaceTemp);
     pScreen = screen.point();
 }
 
@@ -68,26 +81,24 @@ SDL_Surface* DisplaySurface::point() const
     return pSurface;
 }
 
-bool DisplaySurface::blit() const
+void DisplaySurface::blit() const
 {
     if ( SDL_BlitSurface(pSurface, 0, pScreen, 0) < 0 )
-        return false;
-    else return true;
+        throw ErrorInfo(SDL_GetError());
 }
 
 
-bool DisplaySurface::blit(int at_x, int at_y) const
+void DisplaySurface::blit(int at_x, int at_y) const
 {
     SDL_Rect offset;
     offset.x = at_x;
     offset.y = at_y;
 
     if ( SDL_BlitSurface(pSurface, 0, pScreen, &offset) < 0 )
-        return false;
-    else return true;
+        throw ErrorInfo(SDL_GetError());
 }
 
-bool DisplaySurface::blit(int at_x, int at_y,
+void DisplaySurface::blit(int at_x, int at_y,
                           int from_x, int from_y, int w, int h,
                           int delta_x, int delta_y) const
 {
@@ -102,45 +113,14 @@ bool DisplaySurface::blit(int at_x, int at_y,
     dest.h = h + delta_y*2;
 
     if ( SDL_BlitSurface(pSurface, &dest, pScreen, &offset) < 0 )
-        return false;
-    else return true;
+        throw ErrorInfo(SDL_GetError());
 }
 
-bool DisplaySurface::blitToSurface(const DisplaySurface& dst_surface, int at_x, int at_y) const
+void DisplaySurface::colorKey(Uint8 r, Uint8 g, Uint8 b, Uint32 flag)
 {
-    SDL_Rect offset;
-    offset.x = at_x;
-    offset.y = at_y;
-
-    if ( &dst_surface == this )
-        throw "Cannot blit surface to itself!";
-
-    if ( SDL_BlitSurface(pSurface, 0, dst_surface.point(), &offset) < 0 )
-        return false;
-    else return true;
-}
-
-bool DisplaySurface::blitToSurface(const DisplaySurface& dst_surface,
-                                    int at_x, int at_y,
-                                    int from_x, int from_y, int w, int h,
-                                    int delta_x, int delta_y) const
-{
-    SDL_Rect offset;
-    offset.x = at_x - delta_x;
-    offset.y = at_y - delta_y;
-
-    SDL_Rect dest;
-    dest.x = from_x - delta_x;
-    dest.y = from_y - delta_y;
-    dest.w = w + delta_x*2;
-    dest.h = h + delta_y*2;
-
-    if ( &dst_surface == this )
-        throw "Cannot blit surface to itself!";
-
-    if ( SDL_BlitSurface(pSurface, &dest, dst_surface.point(), &offset) < 0 )
-        return false;
-    else return true;
+    Uint32 colorkey = SDL_MapRGB(pSurface->format, r, g, b);
+    if ( SDL_SetColorKey(pSurface, flag, colorkey ) < 0 )
+        throw ErrorInfo(SDL_GetError());
 }
 
 //AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA

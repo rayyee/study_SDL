@@ -4,7 +4,7 @@ OUT = ../bin/sdl_study
 CXX = g++
 MINGW = -lmingw32
 #SDL = -lSDLmain -lSDL -lSDL_image -lSDL_ttf
-SDL = -lSDLmain -lSDL
+SDL = -lSDLmain -lSDL -lSDL_image
 
 OBJECTS = main.o SurfaceClass.o
 
