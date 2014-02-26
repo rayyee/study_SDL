@@ -1,6 +1,7 @@
 //UVi Soft (2008)
 //Long Fei (lf426), E-mail: zbln426@163.com
 
+#include <ctime>
 #include "include/SurfaceClass.h"
 
 int game(int argc, char* argv[]);
@@ -46,6 +47,10 @@ int game(int argc ,char* argv[])
     //Draw dots and screen.
     //screen.flip();
     
+	double elapsedTime;
+	clock_t oldTime = clock();
+	const short fps = 1000 / 30;
+	
     //press ESC or click X to quit.
     bool gameOver = false;
 	short index = 0;
@@ -62,11 +67,20 @@ int game(int argc ,char* argv[])
             }
         }
 		
-		index ++;
-		if (index > 38) index = 0;
-		
-		screen.flip();
-		sprite.blit(0, 0, index * IMG_HEIGHT, 0, IMG_WIDTH, IMG_HEIGHT);
+		clock_t newTime = clock();
+		if (newTime - oldTime >= fps)
+		{
+			oldTime = newTime;
+			
+			std::cout << oldTime << std::endl;
+			
+			index ++;
+			if (index > 38) index = 0;
+			
+			screen.flip();
+			sprite.blit(0, 0, index * IMG_HEIGHT, 0, IMG_WIDTH, IMG_HEIGHT);
+		}
+  
     }
 
     return 0;
