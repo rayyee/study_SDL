@@ -1,4 +1,4 @@
-#include "SurfaceClass.h"
+#include "include/SurfaceClass.h"
 
 void game();
 int main(int argc ,char* argv[])
